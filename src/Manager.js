@@ -138,6 +138,49 @@ class MySQL extends EventEmitter {
     }
 
     /**
+     * Updates data
+     * @param {object} rdata Data
+     * @returns {Promise<any>}
+     */
+    update(rdata = {}) {
+        return new Promise((resolve, reject) => {
+            if(!this.connected) return reject(new Error('Not connected to MySQL database'));
+            const { ID, data } = rdata;
+
+            if (!ID || typeof ID !== 'string') return reject(new Error('Invalid ID'));
+
+            this._createTable();
+
+            mysql.query(`UPDATE \`${this.table}\` SET \`balance\` = ? WHERE \`user\` = ?`, [data, ID],  (err, rows) => {
+                if(err) return reject(err);
+
+                resolve(rows);
+            })
+
+        })
+    }
+
+    /**
+     * Deletes a user from the database
+     * @param {string} user User 
+     * @returns {Promise<boolean>}
+     */
+    delete (user) {
+        return new Promise ((resolve, reject) => {
+            if(!this.connected) return reject(new Error('Not connected to MySQL database'));
+            if (!user || typeof user !== 'string') return reject(new Error('Invalid ID'));
+
+            this._createTable();
+
+            mysql.query(`DELETE FROM \`${this.table}\` WHERE user = ?`, [user], (err, res) => {
+                if(err) return reject(err);
+
+                resolve(true);
+            })
+        })
+    }
+
+    /**
      * Returns all data
      * @returns {Promise<any>}
      */
