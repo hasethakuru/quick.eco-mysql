@@ -73,6 +73,8 @@ class MySQL extends EventEmitter {
 
                     this.emit('debug', await Util.CONNECTED_MESSAGE(user, database, host, port));
 
+                    this._createTable()
+
                     return resolve(this.mysql)
 
                 } catch (e) {
@@ -101,7 +103,8 @@ class MySQL extends EventEmitter {
      */
     write (rdata) {
         return new Promise((resolve, reject) => {
-            if(!this.connected) return reject(new Error('Not connected to MySQL database'));
+            if(this.connected === false) return reject(new Error('Not connected to MySQL database'));
+
             const { ID, data } = rdata;
 
             if (!ID || typeof ID !== 'string') return reject(new Error('Invalid ID'));
@@ -124,7 +127,7 @@ class MySQL extends EventEmitter {
      */
     read(id) {
         return new Promise((resolve, reject) => {
-            if(!this.connected) return reject(new Error('Not connected to MySQL database'));
+            if(this.connected === false) return reject(new Error('Not connected to MySQL database'));
             if (!id || typeof id !== 'string') return reject(new Error('Invalid ID'));
 
             this._createTable();
@@ -144,7 +147,8 @@ class MySQL extends EventEmitter {
      */
     update(rdata = {}) {
         return new Promise((resolve, reject) => {
-            if(!this.connected) return reject(new Error('Not connected to MySQL database'));
+            if(this.connected === false) return reject(new Error('Not connected to MySQL database'));
+
             const { ID, data } = rdata;
 
             if (!ID || typeof ID !== 'string') return reject(new Error('Invalid ID'));
@@ -167,7 +171,7 @@ class MySQL extends EventEmitter {
      */
     delete (user) {
         return new Promise ((resolve, reject) => {
-            if(!this.connected) return reject(new Error('Not connected to MySQL database'));
+            if(this.connected === false) return reject(new Error('Not connected to MySQL database'));
             if (!user || typeof user !== 'string') return reject(new Error('Invalid ID'));
 
             this._createTable();
@@ -186,11 +190,27 @@ class MySQL extends EventEmitter {
      */
     readAll () {
         return new Promise((resolve, reject) => {
-            if(!this.connected) return reject(new Error('Not connected to MySQL database'));
+            if(this.connected === false) return reject(new Error('Not connected to MySQL database'));
 
             this._createTable();
 
             mysql.query(`SELECT * FROM \`${this.table}\``, [], (err, res) => {
+                if(err) return reject(err);
+
+                resolve(res);
+            })
+        })
+    }
+
+    /**
+     * Deletes all data
+     * @returns {Promise<any>}
+     */
+    deleteAll() {
+        return new Promise((resolve, reject) => {
+            if(this.connected === false) return reject(new Error('Not connected to MySQL database'));
+
+            mysql.query(`DROP TABLE \`${this.table}\``, [], (err, res) => {
                 if(err) return reject(err);
 
                 resolve(res);
